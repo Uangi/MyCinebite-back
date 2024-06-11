@@ -38,8 +38,14 @@ public class movieListController {
     }
 
     @GetMapping("/list")
-    public List<TrendMovieEntity> getFromDB() {
-        return trendMovieRepository.findAll();
+    public ResponseEntity <List<TrendMovieEntity>> getAllMovies() {
+        try {
+                List<TrendMovieEntity> allMovies = trendMovieRepository.findAll();
+                return ResponseEntity.ok().body(allMovies);
+            } catch (Exception e) {
+                log.error("DB에서 영화 목록을 가져오는 데 실패했습니다.", e);
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            }
     }
     
 }

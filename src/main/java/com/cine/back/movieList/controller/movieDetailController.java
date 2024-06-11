@@ -6,6 +6,7 @@ import com.cine.back.movieList.entity.movieDetailEntity;
 import com.cine.back.movieList.repository.MovieDetailRepository;
 import com.cine.back.movieList.service.MovieDetailFetcher;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.RequestMapping;
 
@@ -19,16 +20,12 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 @Slf4j
 @RestController
+@RequiredArgsConstructor
 @RequestMapping("/api/movie")
 public class movieDetailController {
 
     private final MovieDetailFetcher detailCall;
     private final MovieDetailRepository movieDetailRepository;
-
-    public movieDetailController(MovieDetailFetcher detailCall, MovieDetailRepository movieDetailRepository) {
-        this.detailCall = detailCall;
-        this.movieDetailRepository = movieDetailRepository;
-    }
 
     @GetMapping("/detail/{movie_id}")
     public ResponseEntity <movieDetailEntity> getMovieDetail(@PathVariable("movie_id") int movieId) {

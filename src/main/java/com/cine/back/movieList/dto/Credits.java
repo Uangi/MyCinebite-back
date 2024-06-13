@@ -6,9 +6,9 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.persistence.Embeddable;
 import jakarta.persistence.Transient;
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 @Embeddable // 다른 클래스에 포함
 public class Credits {
     

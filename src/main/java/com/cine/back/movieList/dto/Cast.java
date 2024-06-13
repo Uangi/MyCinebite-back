@@ -1,8 +1,8 @@
 package com.cine.back.movieList.dto;
 
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class Cast {
 
     private String name;

@@ -1,8 +1,8 @@
 package com.cine.back.movieList.dto;
 
-import lombok.Data;
+import lombok.Getter;
 
-@Data
+@Getter
 public class Genre {
     private int id;
     private String name;

@@ -11,8 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 
 @Tag(name = "Movie Detail Info", description = "RottenTomato Score")
 public interface TomatoControllerDocs {
-    
-    // 로튼 토마토 점수 출력
+
     @Operation(summary = "로튼 토마토 점수", description = "토마토 지수를 보여줍니다.")
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "토마토 지수 출력 성공"),
@@ -20,8 +19,8 @@ public interface TomatoControllerDocs {
         @ApiResponse(responseCode = "500", description = "서버 내부 오류로 인한 토마토 지수 출력 실패")
     })
     ResponseEntity<String> rateMovie(
-                @PathVariable(value = "movieId")int movieId,
-                @RequestParam(value = "userId")String userId, 
-                @PathVariable(value = "rating")String rating
-    );    
+            @PathVariable int movieId,
+            @RequestParam String userId, 
+            @RequestParam String rating
+    );
 }

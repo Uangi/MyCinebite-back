@@ -1,130 +1,136 @@
 package com.cine.back.test;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
 
 import java.util.Optional;
 
-import org.junit.jupiter.api.BeforeEach;
-import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.MockitoAnnotations;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.transaction.annotation.Transactional;
-
 import com.cine.back.movieList.entity.MovieDetailEntity;
 import com.cine.back.movieList.entity.UserRating;
+import com.cine.back.movieList.exception.AlreadyEvaluatedException;
+import com.cine.back.movieList.exception.MovieNotFoundException;
 import com.cine.back.movieList.repository.MovieDetailRepository;
 import com.cine.back.movieList.repository.UserRatingRepository;
 import com.cine.back.movieList.service.EvaluateService;
 
-@SpringBootTest
-@ActiveProfiles("test")
-@Transactional
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+@ExtendWith(MockitoExtension.class)
 public class EvaluateServiceTest {
 
     @Mock
-    private MovieDetailRepository movieDetailRepositoryMock;
+    private MovieDetailRepository movieDetailRepository;
 
     @Mock
-    private UserRatingRepository userRatingRepositoryMock;
+    private UserRatingRepository userRatingRepository;
 
     @InjectMocks
     private EvaluateService evaluateService;
 
+    private MovieDetailEntity movieDetailEntity;
+    private UserRating userRating;
+
     @BeforeEach
-    public void setUp() {
-        MockitoAnnotations.openMocks(this);
+    void setUp() {
+        movieDetailEntity = new MovieDetailEntity();
+        movieDetailEntity.setMovieId(1);
+        movieDetailEntity.setTitle("Test Movie");
+        movieDetailEntity.setFreshCount(0);
+        movieDetailEntity.setRottenCount(0);
+
+        userRating = new UserRating();
+        userRating.setUserId("user123");
+        userRating.setMovieId(1);
+        userRating.setRating("fresh");
     }
 
-    @DisplayName("\n + 유저 1의 평가 : 좋음")
     @Test
-    public void testRateMovieFreshRating() throws Exception {
+    void testRateMovie_Success() throws Exception {
+        when(userRatingRepository.findByUserIdAndMovieId(anyString(), anyInt())).thenReturn(Optional.empty());
+        when(movieDetailRepository.findByMovieId(anyInt())).thenReturn(Optional.of(movieDetailEntity));
 
-        // Given
-        int movieId = 1;
-        String userId = "user1";
-        String rating = "fresh";    // 서비스에서 1점 얻기
+        evaluateService.rateMovie(1, "user123", "fresh");
 
-        MovieDetailEntity movie = new MovieDetailEntity();
-        movie.setMovieId(movieId);
-        movie.setFreshCount(0);
-        movie.setRottenCount(0);
-        movie.setTomatoScore(0.0);
-        movieDetailRepositoryMock.save(movie);  // 엔티티에 무비아이디, 신선함, 썩음, 총점 저장
-
-        when(movieDetailRepositoryMock.findByMovieId(movieId)).thenReturn(Optional.of(movie));
-        when(userRatingRepositoryMock.findByUserIdAndMovieId(userId, movieId)).thenReturn(Optional.empty());
-
-        // When
-        evaluateService.rateMovie(userId, movieId, rating);
-
-        // Then
-        verify(movieDetailRepositoryMock, times(1)).save(movie);
-        assertEquals(1, movie.getFreshCount() + "신선함이 1인가요?");
-        assertEquals(0, movie.getRottenCount());
-        assertEquals(100.0, movie.getTomatoScore());
+        verify(userRatingRepository, times(1)).save(any(UserRating.class));
+        verify(movieDetailRepository, times(1)).save(any(MovieDetailEntity.class));
     }
 
-    @DisplayName("\n유저 2의 평가 : 나쁨")
     @Test
-    public void testRateMovieRottenRating() throws Exception {
-        // Given
-        int movieId = 1;
-        String userId = "user2";
-        String rating = "rotten";
+    void testRateMovie_AlreadyEvaluated() {
+        when(userRatingRepository.findByUserIdAndMovieId(anyString(), anyInt())).thenReturn(Optional.of(userRating));
 
-        MovieDetailEntity movie = new MovieDetailEntity();
-        movie.setMovieId(movieId);
-        movie.setFreshCount(1);
-        movie.setRottenCount(0);
-        movie.setTomatoScore(100.0);
+        assertThrows(AlreadyEvaluatedException.class, () -> {
+            evaluateService.rateMovie(1, "user123", "fresh");
+        });
 
-        when(movieDetailRepositoryMock.findByMovieId(movieId)).thenReturn(Optional.of(movie));
-        when(userRatingRepositoryMock.findByUserIdAndMovieId(userId, movieId)).thenReturn(Optional.empty());
-
-        // When
-        evaluateService.rateMovie(userId, movieId, rating);
-
-        // Then
-        verify(movieDetailRepositoryMock, times(1)).save(movie);
-        assertEquals(1, movie.getFreshCount());
-        assertEquals(1, movie.getRottenCount());
-        assertEquals(50.0, movie.getTomatoScore());
+        verify(userRatingRepository, times(0)).save(any(UserRating.class));
+        verify(movieDetailRepository, times(0)).save(any(MovieDetailEntity.class));
     }
 
-    @DisplayName("\n유저 1 이 이미 평가한 영화입니다.")
     @Test
-    public void testRateMovieExistingRating() {
-        // Given
-        int movieId = 1;
-        String userId = "user1";
-        String rating = "fresh";
+    void testRateMovie_MovieNotFound() {
+        when(userRatingRepository.findByUserIdAndMovieId(anyString(), anyInt())).thenReturn(Optional.empty());
+        when(movieDetailRepository.findByMovieId(anyInt())).thenReturn(Optional.empty());
 
-        UserRating existingRating = new UserRating();
-        existingRating.setUserId(userId);
-        existingRating.setMovieId(movieId);
+        assertThrows(MovieNotFoundException.class, () -> {
+            evaluateService.rateMovie(1, "user123", "fresh");
+        });
 
-        when(userRatingRepositoryMock.findByUserIdAndMovieId(userId, movieId)).thenReturn(Optional.of(existingRating));
-
-        // When / Then
-        assertThrows(Exception.class, () -> evaluateService.rateMovie(userId, movieId, rating));
+        verify(userRatingRepository, times(0)).save(any(UserRating.class));
+        verify(movieDetailRepository, times(0)).save(any(MovieDetailEntity.class));
     }
-    
-    @DisplayName("\n찾을 수 없는 영화입니당")
+
     @Test
-    public void testRateMovieMovieNotFound() {
-        // Given
-        int movieId = 999;
-        String userId = "user3";
-        String rating = "fresh";
+    void testCreateUserRating() {
+        UserRating newRating = evaluateService.CreateUserRating(1, "user123", "fresh", movieDetailEntity);
+        assertNotNull(newRating);
+        assertEquals("user123", newRating.getUserId());
+        assertEquals(1, newRating.getMovieId());
+        assertEquals("fresh", newRating.getRating());
+        assertEquals(1, newRating.getTomato());
+    }
 
-        when(movieDetailRepositoryMock.findByMovieId(movieId)).thenReturn(Optional.empty());
+    @Test
+    void testEvaluateUpdate_Fresh() {
+        int score = evaluateService.EvaluateUpdate("fresh");
+        assertEquals(1, score);
+    }
 
-        // When / Then
-        assertThrows(Exception.class, () -> evaluateService.rateMovie(userId, movieId, rating));
+    @Test
+    void testEvaluateUpdate_Rotten() {
+        int score = evaluateService.EvaluateUpdate("rotten");
+        assertEquals(-1, score);
+    }
+
+    @Test
+    void testUpdateMovieRating_Fresh() {
+        evaluateService.updateMovieRating(movieDetailEntity, "fresh");
+        assertEquals(1, movieDetailEntity.getFreshCount());
+        assertEquals(0, movieDetailEntity.getRottenCount());
+    }
+
+    @Test
+    void testUpdateMovieRating_Rotten() {
+        evaluateService.updateMovieRating(movieDetailEntity, "rotten");
+        assertEquals(0, movieDetailEntity.getFreshCount());
+        assertEquals(1, movieDetailEntity.getRottenCount());
+    }
+
+    @Test
+    void testUpdateTomatoScore() {
+        movieDetailEntity.setFreshCount(1);
+        movieDetailEntity.setRottenCount(1);
+        evaluateService.updateTomatoScore(movieDetailEntity);
+        assertEquals(50.0, movieDetailEntity.getTomatoScore());
     }
 }

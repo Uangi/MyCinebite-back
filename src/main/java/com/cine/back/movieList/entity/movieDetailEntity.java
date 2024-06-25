@@ -1,6 +1,6 @@
 package com.cine.back.movieList.entity;
 
-import java.util.List;
+import java.util.*;
 
 import com.cine.back.movieList.dto.Credits;
 import com.cine.back.movieList.dto.Genre;
@@ -11,26 +11,18 @@ import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
 import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
-import jakarta.persistence.Transient;
 import lombok.Data;
-
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-@Entity
+@Entity(name = "movie_details")
 public class MovieDetailEntity {
     
     @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "movieDetail_no")
-    private long movieDetail;
-
     @JsonProperty("id")
     @Column(name = "movie_id")
-    private int movie_id;
+    private int movieId;
 
     @JsonProperty("title")
     @Column(name = "title")
@@ -38,7 +30,7 @@ public class MovieDetailEntity {
 
     @JsonProperty("release_date")
     @Column(length = 20)
-    private String release_date;
+    private String releaseDate;
 
     @JsonProperty("overview")
     @Column(columnDefinition = "TEXT")
@@ -46,7 +38,15 @@ public class MovieDetailEntity {
 
     @JsonProperty("poster_path")
     @Column(length = 100)
-    private String poster_path;
+    private String posterPath;
+
+    @JsonProperty("popularity")
+    @Column(length = 20)
+    private String popularity;
+
+    @JsonProperty("runtime")
+    @Column(length = 100)
+    private String runtime;
     
     @JsonProperty("genres")
     @ElementCollection
@@ -55,5 +55,14 @@ public class MovieDetailEntity {
 
     @JsonProperty("credits")
     private Credits credits;
+    
+    @Column(name = "fresh_count")
+    private int freshCount;
+
+    @Column(name = "rotten_count")
+    private int rottenCount;
+    
+    @Column(name = "tomato_score")
+    private double tomatoScore; // 평가 퍼센티지
 
 }

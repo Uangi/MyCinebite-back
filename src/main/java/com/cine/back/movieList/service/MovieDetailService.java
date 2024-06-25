@@ -1,99 +1,92 @@
 package com.cine.back.movieList.service;
 
-
 import org.springframework.stereotype.Service;
 
+import com.cine.back.config.MovieConfig;
 import com.cine.back.movieList.dto.Movie;
 import com.cine.back.movieList.entity.MovieDetailEntity;
 import com.cine.back.movieList.repository.MovieDetailRepository;
-import com.cine.back.movieList.response.TrendMovieResponse;
+import com.cine.back.movieList.response.MovieResponse;
 
 import jakarta.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Optional;
+import java.util.*;
 
 
 @Slf4j
-@AllArgsConstructor
 @Service
 public class MovieDetailService {
-
     private final MovieDetailRepository movieDetailRepository;
-    private final ApiCall apiCall;
+    private final MovieConfig movieConfig;
     
+    public MovieDetailService(MovieDetailRepository movieDetailRepository,MovieConfig movieConfig) {
+        this.movieDetailRepository = movieDetailRepository;
+        this.movieConfig = movieConfig;
+    }
+
     //서버 실행 시 자동 저장
     @PostConstruct
     public void init() {
         try {
-            getAllTrendMovies();
+            getAllMovies();
+            log.info("영화 api 데이터 저장 성공");
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("에러 - api 데이터 자동 저장 실패", e);
         }
     }
 
-    public Optional<List<Movie>> fetchAllTrendMovies() {
+    public List<Movie> fetchAllMovies() {
         List<Movie> allMovies = new ArrayList<>();
     
         for (int page = 1; page <= 1; page++) {
             try {
-                TrendMovieResponse trendMovieResponse = apiCall.fetchList(page);
-                if (trendMovieResponse != null) {
-                    List<Movie> movies = trendMovieResponse.getResults();
+                MovieResponse allMovieResponse = movieConfig.fetchMovieList(page);
+                if (allMovieResponse != null) {
+                    List<Movie> movies = allMovieResponse.getResults();
                     allMovies.addAll(movies);
-
+                    log.info("페이지 {}의 영화 {}개 가져오기 성공", page, movies.size());
                 }
             } catch (Exception e) {
-                System.err.println("페이지 " + page + "에서 오류 발생: " + e.getMessage());
-                log.error(page +  "페이지에서 오류 발생 ", e);
-                return Optional.empty();   // 오류 발생 시 빈 리스트 반환 ? / 아니면 오류 발생 전까지 데이터 그대로 반환하는지
+                log.error("에러 - api 영화 전체 데이터 조회 실패", e);
             }
         }
-        return Optional.of(allMovies);
+        return allMovies;
     }
     
-    public void getAllTrendMovies() {
-        Optional<List<Movie>> optionalMovies = fetchAllTrendMovies();
-        if(optionalMovies.isPresent()){
-            List<Movie> allMovies = optionalMovies.get();
+    public void getAllMovies() {
+        List<Movie> allMovies = fetchAllMovies();
+        if(allMovies!=null){
             for (Movie movie : allMovies) {
                 try {
-                    Optional<MovieDetailEntity> optionalMovieDetails = apiCall.fetchMovieDetails(movie.getMovieId());
-                    if (optionalMovieDetails.isPresent()) {
-                        saveMovieDetail(optionalMovieDetails.get());
+                    MovieDetailEntity movieDetails = movieConfig.fetchMovieDetails(movie.getMovieId());
+                    if (movieDetails != null) {
+                        saveMovieDetail(movieDetails);
+                        log.info("영화 ID {} 상세 정보 저장 성공", movie.getMovieId());
                     }
                 } catch (Exception e) {
-                    System.err.println("영화 ID " + movie.getMovieId() + "에서 오류 발생: " + e.getMessage());
-                    Optional.empty(); 
+                    log.error("에러 - api 영화 상세 데이터 조회 실패", movie.getMovieId(), e);
                 }
             }
         }
     }
 
     // 데이터 저장 (중복 방지)
-    private Optional<MovieDetailEntity> saveMovieDetail(MovieDetailEntity movieDetail) {
+    private void saveMovieDetail(MovieDetailEntity movieDetail) {
         try {
             Optional<MovieDetailEntity> optionalExistingMovie = movieDetailRepository.findByMovieId(movieDetail.getMovieId());
-
             if (optionalExistingMovie.isPresent()) {
-                MovieDetailEntity existingMovie = optionalExistingMovie.get();  // 이미 존재하는 영화 중에 새롭게 갱신되는 영화가 있다면 (존재 목록)
+                MovieDetailEntity existingMovie = optionalExistingMovie.get();
                 existingMovie.setTitle(movieDetail.getTitle());
                 existingMovie.setOverview(movieDetail.getOverview());
                 movieDetailRepository.save(existingMovie);
-                log.info("수정된 영화 상세 정보 : {}", existingMovie);
-                return Optional.of(existingMovie);
+                log.debug("기존 영화 정보 수정 및 저장", existingMovie);
             } else {
                 movieDetailRepository.save(movieDetail);
-                log.info("영화 상세 정보 추가 : {}", movieDetail);
-                return Optional.of(movieDetail);    // 응답 값이 포함되어 있다면 해당 값을 포함하는 optional 객체 생성
+                log.debug("영화 상세정보 추가", movieDetail);
             }
         } catch (Exception e) {
-            e.printStackTrace();
-            log.error("에러 - 저장된 movieId ", movieDetail.getMovieId(), e);
-            return Optional.empty();    // 응답 값이 null 일 경우 비어있는 optional 객체 생성
+            log.error("에러 - 저장 실패", movieDetail.getMovieId(), e);
         }
     }
 }

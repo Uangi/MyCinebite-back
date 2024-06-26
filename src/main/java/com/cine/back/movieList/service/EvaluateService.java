@@ -49,7 +49,7 @@ public class EvaluateService {
         userRating.setMovieId(movieId);
         userRating.setUserId(userId);
         userRating.setRating(rating); // 신선도 버튼 누르면 문자열로 "fresh 반환"
-        userRating.setTomato(EvaluateUpdate(rating)); // 평가에 따른 토마토 점수 설정
+        userRating.setTomato(calculateTomatoScore(rating)); // 평가에 따른 토마토 점수 설정
         userRating.setMovieDetailEntity(movie);
         log.info("유저 아이디 : {}", userId);
         log.info("영화 번호 : {}", movieId);
@@ -57,11 +57,11 @@ public class EvaluateService {
         return userRating;
     }
 
-    public int EvaluateUpdate(String rating) {
+    public int calculateTomatoScore(String rating) {
         if ("fresh".equals(rating)) {
-            return 1;
+            return 1;   // 신선함으로 평가
         }
-        return -1;
+        return -1;      // 썩음으로 평가
     }
 
     public void updateMovieRating(MovieDetailEntity movie, String rating) {
@@ -72,7 +72,7 @@ public class EvaluateService {
         if ("rotten".equals(rating)) {
             movie.setRottenCount(movie.getRottenCount() + 1);
         }
-        updateTomatoScore(movie);
+        updateTomatoScore(movie);   
     }
 
     public void updateTomatoScore(MovieDetailEntity movie) {

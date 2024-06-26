@@ -102,13 +102,13 @@ public class EvaluateServiceTest {
 
     @Test
     void testEvaluateUpdate_Fresh() {
-        int score = evaluateService.EvaluateUpdate("fresh");
+        int score = evaluateService.calculateTomatoScore("fresh");
         assertEquals(1, score);
     }
 
     @Test
     void testEvaluateUpdate_Rotten() {
-        int score = evaluateService.EvaluateUpdate("rotten");
+        int score = evaluateService.calculateTomatoScore("rotten");
         assertEquals(-1, score);
     }
 

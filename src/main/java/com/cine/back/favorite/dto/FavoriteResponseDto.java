@@ -1,4 +1,4 @@
-package com.cine.back.recommendation.dto;
+package com.cine.back.favorite.dto;
 
 public record FavoriteResponseDto(
                 Long favoriteId,

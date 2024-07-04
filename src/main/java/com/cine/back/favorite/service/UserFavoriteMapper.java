@@ -1,13 +1,13 @@
-package com.cine.back.recommendation.service;
+package com.cine.back.favorite.service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
-import com.cine.back.recommendation.dto.FavoriteRequestDto;
-import com.cine.back.recommendation.dto.FavoriteResponseDto;
-import com.cine.back.recommendation.entity.UserFavorite;
+import com.cine.back.favorite.dto.FavoriteRequestDto;
+import com.cine.back.favorite.dto.FavoriteResponseDto;
+import com.cine.back.favorite.entity.UserFavorite;
 
 import lombok.extern.slf4j.Slf4j;
 

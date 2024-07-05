@@ -19,6 +19,7 @@ import lombok.NoArgsConstructor;
 @Data
 @Entity(name = "User_Revalue")
 public class UserRevalue {
+    
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long revalueId;

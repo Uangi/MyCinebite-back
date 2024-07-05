@@ -1,8 +1,10 @@
 package com.cine.back.movieList.request;
 
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 public record UserRevalueRequest( 
     int movieId,
-    String userId
+    String userId,
+    LocalDateTime deletedDate,
+    boolean checkDeleted
     ) {}

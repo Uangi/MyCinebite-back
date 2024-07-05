@@ -27,10 +27,10 @@ public class TomatoController implements TomatoControllerDocs {
     }
 
     @PostMapping("/{movieId}/rate")
-    public ResponseEntity<?> rateMovie(@RequestBody Evaluation evaluation) {
+    public ResponseEntity<?> rateMovie(@RequestBody Evaluation evaluation, @PathVariable int movieId) {
         try {
-            System.out.println("하이테스트");
-            EvaluateResponse response = evaluateService.rateMovie(evaluation);
+            log.info("[POST][/movie/{}/rate] - 평가 저장", movieId);
+            EvaluateResponse response = evaluateService.rateMovie(movieId, evaluation);
             log.info("응답 테스트 : {}", response);
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {

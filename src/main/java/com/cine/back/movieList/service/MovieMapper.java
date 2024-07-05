@@ -9,7 +9,6 @@ import com.cine.back.movieList.entity.UserRating;
 import com.cine.back.movieList.entity.UserRevalue;
 import com.cine.back.movieList.request.MovieRatingRequest;
 import com.cine.back.movieList.request.UserRatingRequest;
-import com.cine.back.movieList.request.UserRevalueRequest;
 import com.cine.back.movieList.response.EvaluateResponse;
 
 @Component
@@ -32,15 +31,6 @@ public class MovieMapper {
                     .build();
     }
 
-    public UserRevalue toUserRevalue(UserRevalueRequest revalueRequest) {
-        return UserRevalue.builder()
-                    .movieId(revalueRequest.movieId())
-                    .userId(revalueRequest.userId())
-                    .deletedDate(LocalDateTime.now()) // LocalDate -> LocalDateTime 변환
-                    .checkDeleted((true))
-                    .build();
-    }
-
     public EvaluateResponse toResponse(UserRating userRating, MovieDetailEntity movieDetail, UserRevalue userRevalue) {
         LocalDateTime deletedDate = userRevalue != null ? userRevalue.getDeletedDate() : null;
         boolean checkDeleted = userRevalue != null && userRevalue.isCheckDeleted();
@@ -57,12 +47,5 @@ public class MovieMapper {
                 movieDetail.getRottenCount(),
                 movieDetail.getTomatoScore()
         );
-    }
-
-    public MovieDetailEntity updateEvaluate(MovieDetailEntity ratingEntity, MovieRatingRequest ratingDto) {
-        ratingEntity.setFreshCount(ratingDto.freshCount());
-        ratingEntity.setRottenCount(ratingDto.rottenCount());
-        ratingEntity.setTomatoScore(ratingDto.tomatoScore());
-        return ratingEntity;
     }
 }

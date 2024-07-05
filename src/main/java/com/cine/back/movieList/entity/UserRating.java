@@ -39,20 +39,11 @@ public class UserRating {
     @Column(name = "tomato")
     private int tomato; // 평가 척도
     
-    @Column(name = "deleted_Date")
-    private LocalDateTime deletedDate;    // 평가 삭제 시점
-    
-    @Column(name = "check_Deleted")
-    private boolean checkDeleted; // 삭제 유무 판단
-    
     @Builder
-    public UserRating(int movieId, String userId,
-             String rating, int tomato, LocalDateTime deletedDate, boolean checkDeleted) {
+    public UserRating(int movieId, String userId, String rating, int tomato) {
         this.movieId = movieId;
         this.userId = userId;
         this.rating = rating;
         this.tomato = tomato;
-        this.deletedDate = deletedDate;
-        this.checkDeleted = checkDeleted;
     }
 }

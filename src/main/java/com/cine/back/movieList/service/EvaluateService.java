@@ -26,22 +26,23 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-
 public class EvaluateService {
     private final MovieDetailRepository movieDetailRepository;
     private final UserRatingRepository userRatingRepository;
-    private final MovieMapper movieMapper;
     private final UserRevalueRepository userRevalueRepository;
-    
+    private final MovieMapper movieMapper;
+
     // 평가하기
     @Transactional
-    public EvaluateResponse rateMovie(Evaluation evaluation) throws Exception {
+    public EvaluateResponse rateMovie(int movieId, Evaluation evaluation) throws Exception {
+        log.info("[POST][/movie/{}/rate] - 평가 정보!!!! :{} ", movieId, evaluation);
 
         UserRatingRequest userRatingRequest = evaluation.userRatingRequest();
         MovieRatingRequest movieRatingRequest = evaluation.movieRatingRequest();
 
         alreadyEvaluate(userRatingRequest.userId(), userRatingRequest.movieId()); // 이미 평가했는지 검증
         MovieDetailEntity movie = findMovieById(userRatingRequest.movieId()); // 선택한 영화 상세정보 저장
+
         UserRating userRating = movieMapper.toUserRating(userRatingRequest); // 평가와 영화정보 저장
         log.info("평가 정보 저장 테스트 : {}", userRating);
         userRatingRepository.save(userRating);
@@ -50,6 +51,8 @@ public class EvaluateService {
         movieDetailRepository.save(movie); // 저장 위치 이동
         log.info("로튼 토마토 지수 : {}", movie.getTomatoScore());
         log.info("평가 정보 : {}", userRating);
+        
+        // 새로운 EvaluateResponse를 반환
         EvaluateResponse responseDto = movieMapper.toResponse(userRating, movie, null);
         return responseDto;
     }
@@ -73,7 +76,13 @@ public class EvaluateService {
             movieDetailRepository.save(movie);
             userRatingRepository.delete(existingRating);
 
-            UserRevalue userRevalue = new UserRevalue(movieId, userId, LocalDateTime.now(), false);
+            // 삭제된 평가 정보 저장
+            UserRevalue userRevalue = new UserRevalue(
+                movieId,
+                userId,
+                LocalDateTime.now(),
+                true
+            );
             userRevalueRepository.save(userRevalue);
         } else {
             throw new Exception("평가를 찾을 수 없습니다.");
@@ -87,12 +96,15 @@ public class EvaluateService {
             throw new AlreadyEvaluatedException();
         }
 
-        Optional<UserRevalue> revalue = userRevalueRepository.findByUserIdAndMovieId(userId, movieId);
-        if(revalue.isPresent()) {
-            UserRevalue userRevalue = revalue.get();
-            LocalDateTime deletedDate = userRevalue.getDeletedDate();
-            if (revalue.get().isCheckDeleted() && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
-                throw new EvaluationNotPermittedException();  // 삭제된 후 1분이 지나야 평가 가능
+        Optional<UserRevalue> revalueRecord = userRevalueRepository.findByUserIdAndMovieId(userId, movieId);
+        if (revalueRecord.isPresent()) {
+            UserRevalue userRevalue = revalueRecord.get();
+            LocalDateTime deletedDate = userRevalue.getDeletedDate(); // 삭제시점 구하기
+            long secondsRemaining = 60 - ChronoUnit.SECONDS.between(deletedDate, LocalDateTime.now());
+            if (userRevalue.isCheckDeleted() && secondsRemaining > 0) {
+                throw new EvaluationNotPermittedException(secondsRemaining);  // 삭제된 후 1분이 지나야 평가 가능
+            } else if (secondsRemaining <= 0) {
+                userRevalueRepository.delete(userRevalue); // 1분이 지나면 해당 레코드 삭제
             }
         }
     }
@@ -115,7 +127,7 @@ public class EvaluateService {
     // 최종 토마토 점수 계산
     private void updateTomatoScore(MovieDetailEntity movie) {
         int totalRatings = movie.getFreshCount() + movie.getRottenCount();
-        double tomatoScore = (double) movie.getFreshCount() / totalRatings * 100;
+        double tomatoScore = totalRatings > 0 ? (double) movie.getFreshCount() / totalRatings * 100 : 0.0;
         movie.setTomatoScore(tomatoScore);
     }
 }

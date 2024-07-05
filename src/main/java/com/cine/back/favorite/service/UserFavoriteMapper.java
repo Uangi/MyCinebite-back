@@ -5,21 +5,23 @@ import java.util.stream.Collectors;
 
 import org.springframework.stereotype.Component;
 
+import com.cine.back.favorite.dto.FavoriteAndMovie;
 import com.cine.back.favorite.dto.FavoriteRequestDto;
 import com.cine.back.favorite.dto.FavoriteResponseDto;
+import com.cine.back.favorite.dto.MovieInfoRequest;
 import com.cine.back.favorite.entity.UserFavorite;
-
-import lombok.extern.slf4j.Slf4j;
-
-@Slf4j
 @Component
 public class UserFavoriteMapper {
     
-    public UserFavorite toUserFavorite(FavoriteRequestDto favoriteDto) {
-        log.info("매핑 성공 여부 확인 : {} ", favoriteDto);
+    public UserFavorite toUserFavorite(FavoriteAndMovie favoriteAndMovie) {
+        FavoriteRequestDto favoriteDto = favoriteAndMovie.favoriteRequestDto();
+        MovieInfoRequest movieInfoRequest = favoriteAndMovie.movieInfoRequest();
+
         return UserFavorite.builder()
                 .userId(favoriteDto.userId())
-                .movieId(favoriteDto.movieId())
+                .movieId(movieInfoRequest.movieId())
+                .posterPath(movieInfoRequest.posterPath())
+                .title(movieInfoRequest.title())
                 .build();
     }
 
@@ -27,12 +29,14 @@ public class UserFavoriteMapper {
         return FavoriteResponseDto.of(
                 favorite.getFavoriteId(),
                 favorite.getUserId(),
-                favorite.getMovieId());
+                favorite.getMovieId(),
+                favorite.getPosterPath(),
+                favorite.getTitle());
     }
 
     public List<FavoriteResponseDto> toResponseDtos(List<UserFavorite> userFavorites) {
         return userFavorites.stream()
-                .map(favorite -> toResponseDto(favorite))
+                .map(this::toResponseDto)
                 .collect(Collectors.toList());
     }
 }

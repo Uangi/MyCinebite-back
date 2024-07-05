@@ -31,7 +31,6 @@ public class TomatoController implements TomatoControllerDocs {
         try {
             log.info("[POST][/movie/{}/rate] - 평가 저장", movieId);
             EvaluateResponse response = evaluateService.rateMovie(movieId, evaluation);
-            log.info("응답 테스트 : {}", response);
             return ResponseEntity.ok().body(response);
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());
@@ -43,8 +42,8 @@ public class TomatoController implements TomatoControllerDocs {
                 @RequestParam String userId,
                 @PathVariable int movieId) {
         try {
+            log.info("[DELETE][/movie/{}/deleteRating] - 평가 삭제", movieId);
             evaluateService.deleteRating(userId, movieId);
-            log.info("삭제된 평가정보 : {}", userId, movieId);
             return ResponseEntity.ok().body("평가가 삭제되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body(e.getMessage());

@@ -6,8 +6,10 @@ import org.springframework.stereotype.Component;
 
 import com.cine.back.movieList.entity.MovieDetailEntity;
 import com.cine.back.movieList.entity.UserRating;
+import com.cine.back.movieList.entity.UserRevalue;
 import com.cine.back.movieList.request.MovieRatingRequest;
 import com.cine.back.movieList.request.UserRatingRequest;
+import com.cine.back.movieList.request.UserRevalueRequest;
 import com.cine.back.movieList.response.EvaluateResponse;
 
 @Component
@@ -19,7 +21,6 @@ public class MovieMapper {
                 .userId(userRatingRequest.userId())
                 .rating(userRatingRequest.rating())
                 .tomato(userRatingRequest.tomato())
-                // .deletedDate(LocalDateTime.now())
                 .build();
     }
 
@@ -31,15 +32,27 @@ public class MovieMapper {
                     .build();
     }
 
-    public EvaluateResponse toResponse(UserRating userRating, MovieDetailEntity movieDetail) {
+    public UserRevalue toUserRevalue(UserRevalueRequest revalueRequest) {
+        return UserRevalue.builder()
+                    .movieId(revalueRequest.movieId())
+                    .userId(revalueRequest.userId())
+                    .deletedDate(LocalDateTime.now()) // LocalDate -> LocalDateTime 변환
+                    .checkDeleted((true))
+                    .build();
+    }
+
+    public EvaluateResponse toResponse(UserRating userRating, MovieDetailEntity movieDetail, UserRevalue userRevalue) {
+        LocalDateTime deletedDate = userRevalue != null ? userRevalue.getDeletedDate() : null;
+        boolean checkDeleted = userRevalue != null && userRevalue.isCheckDeleted();
+
         return EvaluateResponse.of(
                 userRating.getRatingId(),
                 userRating.getMovieId(),
                 userRating.getUserId(),
                 userRating.getRating(),
                 userRating.getTomato(),
-                userRating.getDeletedDate(), // 삭제하지 않았다면 null 값줘야할 수도
-                userRating.isCheckDeleted(),
+                deletedDate, // 삭제하지 않았다면 null 값
+                checkDeleted,
                 movieDetail.getFreshCount(),
                 movieDetail.getRottenCount(),
                 movieDetail.getTomatoScore()

@@ -9,11 +9,13 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cine.back.movieList.dto.Evaluation;
 import com.cine.back.movieList.entity.MovieDetailEntity;
 import com.cine.back.movieList.entity.UserRating;
+import com.cine.back.movieList.entity.UserRevalue;
 import com.cine.back.movieList.exception.AlreadyEvaluatedException;
 import com.cine.back.movieList.exception.EvaluationNotPermittedException;
 import com.cine.back.movieList.exception.MovieNotFoundException;
 import com.cine.back.movieList.repository.MovieDetailRepository;
 import com.cine.back.movieList.repository.UserRatingRepository;
+import com.cine.back.movieList.repository.UserRevalueRepository;
 import com.cine.back.movieList.request.MovieRatingRequest;
 import com.cine.back.movieList.request.UserRatingRequest;
 import com.cine.back.movieList.response.EvaluateResponse;
@@ -24,11 +26,13 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 @RequiredArgsConstructor
+
 public class EvaluateService {
     private final MovieDetailRepository movieDetailRepository;
     private final UserRatingRepository userRatingRepository;
     private final MovieMapper movieMapper;
-
+    private final UserRevalueRepository userRevalueRepository;
+    
     // 평가하기
     @Transactional
     public EvaluateResponse rateMovie(Evaluation evaluation) throws Exception {
@@ -46,7 +50,7 @@ public class EvaluateService {
         movieDetailRepository.save(movie); // 저장 위치 이동
         log.info("로튼 토마토 지수 : {}", movie.getTomatoScore());
         log.info("평가 정보 : {}", userRating);
-        EvaluateResponse responseDto = movieMapper.toResponse(userRating, movie);
+        EvaluateResponse responseDto = movieMapper.toResponse(userRating, movie, null);
         return responseDto;
     }
 
@@ -58,20 +62,19 @@ public class EvaluateService {
             UserRating existingRating = existingRatingOptional.get();
             MovieDetailEntity movie = findMovieById(movieId);
 
-            existingRating.setDeletedDate(LocalDateTime.now()); // 삭제 시간 설정
-            existingRating.setCheckDeleted(true);
-
             if ("fresh".equals(existingRating.getRating())) {
                 movie.setFreshCount(movie.getFreshCount() - 1);
             }
             if ("rotten".equals(existingRating.getRating())) {
                 movie.setRottenCount(movie.getRottenCount() - 1);
             }
-            existingRating.setDeletedDate(LocalDateTime.now());
             
             updateTomatoScore(movie);
             movieDetailRepository.save(movie);
             userRatingRepository.delete(existingRating);
+
+            UserRevalue userRevalue = new UserRevalue(movieId, userId, LocalDateTime.now(), false);
+            userRevalueRepository.save(userRevalue);
         } else {
             throw new Exception("평가를 찾을 수 없습니다.");
         }
@@ -81,11 +84,16 @@ public class EvaluateService {
     private void alreadyEvaluate(String userId, int movieId) {
         Optional<UserRating> existingRating = userRatingRepository.findByUserIdAndMovieId(userId, movieId);
         if (existingRating.isPresent()) {
-            LocalDateTime deletedDate = existingRating.get().getDeletedDate();
-            if (existingRating.get().isCheckDeleted() && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
+            throw new AlreadyEvaluatedException();
+        }
+
+        Optional<UserRevalue> revalue = userRevalueRepository.findByUserIdAndMovieId(userId, movieId);
+        if(revalue.isPresent()) {
+            UserRevalue userRevalue = revalue.get();
+            LocalDateTime deletedDate = userRevalue.getDeletedDate();
+            if (revalue.get().isCheckDeleted() && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
                 throw new EvaluationNotPermittedException();  // 삭제된 후 1분이 지나야 평가 가능
             }
-            throw new AlreadyEvaluatedException();
         }
     }
 

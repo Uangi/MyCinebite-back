@@ -29,7 +29,6 @@ public class EvaluateService {
     private final UserRatingRepository userRatingRepository;
     private final MovieMapper movieMapper;
 
-    // 평가하기
     @Transactional
     public EvaluateResponse rateMovie(Evaluation evaluation) throws Exception {
 
@@ -50,7 +49,6 @@ public class EvaluateService {
         return responseDto;
     }
 
-    // 평가 삭제
     @Transactional
     public void deleteRating(String userId, int movieId) throws Exception {
         Optional<UserRating> existingRatingOptional = userRatingRepository.findByUserIdAndMovieId(userId, movieId);
@@ -59,8 +57,7 @@ public class EvaluateService {
             MovieDetailEntity movie = findMovieById(movieId);
 
             existingRating.setDeletedDate(LocalDateTime.now()); // 삭제 시간 설정
-            existingRating.setCheckDeleted(true);
-
+            
             if ("fresh".equals(existingRating.getRating())) {
                 movie.setFreshCount(movie.getFreshCount() - 1);
             }
@@ -77,12 +74,11 @@ public class EvaluateService {
         }
     }
     
-    // 평가 기록 확인 및 재평가 시간 한도 설정
     private void alreadyEvaluate(String userId, int movieId) {
         Optional<UserRating> existingRating = userRatingRepository.findByUserIdAndMovieId(userId, movieId);
         if (existingRating.isPresent()) {
             LocalDateTime deletedDate = existingRating.get().getDeletedDate();
-            if (existingRating.get().isCheckDeleted() && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
+            if (deletedDate != null && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
                 throw new EvaluationNotPermittedException();  // 삭제된 후 1분이 지나야 평가 가능
             }
             throw new AlreadyEvaluatedException();
@@ -94,7 +90,6 @@ public class EvaluateService {
                 .orElseThrow(MovieNotFoundException::new); // 핸들러
     }
             
-    // 신선해요, 썩었어요 판단
     private void updateMovieRating(MovieDetailEntity movie, String rating, MovieRatingRequest movieRatingRequest) {
         if ("fresh".equals(rating)) {
             movie.setFreshCount(movie.getFreshCount() + 1);
@@ -104,7 +99,6 @@ public class EvaluateService {
         updateTomatoScore(movie);
     }
                 
-    // 최종 토마토 점수 계산
     private void updateTomatoScore(MovieDetailEntity movie) {
         int totalRatings = movie.getFreshCount() + movie.getRottenCount();
         double tomatoScore = (double) movie.getFreshCount() / totalRatings * 100;

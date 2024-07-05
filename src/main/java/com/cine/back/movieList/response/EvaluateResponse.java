@@ -9,6 +9,7 @@ public record EvaluateResponse(
     String rating,
     int tomato,
     LocalDateTime deletedDate,
+    boolean checkDeleted,
     int freshCount,
     int rottenCount,
     double tomatoScore
@@ -21,6 +22,7 @@ public record EvaluateResponse(
         String rating,
         int tomato,
         LocalDateTime deletedDate,
+        boolean checkDeleted,
         int freshCount,
         int rottenCount,
         double tomatoScore) {
@@ -31,6 +33,7 @@ public record EvaluateResponse(
                                 rating,
                                 tomato,
                                 deletedDate,
+                                checkDeleted,
                                 freshCount,
                                 rottenCount,
                                 tomatoScore);

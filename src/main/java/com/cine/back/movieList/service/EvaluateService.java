@@ -57,7 +57,8 @@ public class EvaluateService {
             MovieDetailEntity movie = findMovieById(movieId);
 
             existingRating.setDeletedDate(LocalDateTime.now()); // 삭제 시간 설정
-            
+            existingRating.setCheckDeleted(true);
+
             if ("fresh".equals(existingRating.getRating())) {
                 movie.setFreshCount(movie.getFreshCount() - 1);
             }
@@ -78,7 +79,7 @@ public class EvaluateService {
         Optional<UserRating> existingRating = userRatingRepository.findByUserIdAndMovieId(userId, movieId);
         if (existingRating.isPresent()) {
             LocalDateTime deletedDate = existingRating.get().getDeletedDate();
-            if (deletedDate != null && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
+            if (existingRating.get().isCheckDeleted() && ChronoUnit.MINUTES.between(deletedDate, LocalDateTime.now()) < 1) {
                 throw new EvaluationNotPermittedException();  // 삭제된 후 1분이 지나야 평가 가능
             }
             throw new AlreadyEvaluatedException();

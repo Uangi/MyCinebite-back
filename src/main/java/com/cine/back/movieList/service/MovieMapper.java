@@ -39,6 +39,7 @@ public class MovieMapper {
                 userRating.getRating(),
                 userRating.getTomato(),
                 userRating.getDeletedDate(), // 삭제하지 않았다면 null 값줘야할 수도
+                userRating.isCheckDeleted(),
                 movieDetail.getFreshCount(),
                 movieDetail.getRottenCount(),
                 movieDetail.getTomatoScore()

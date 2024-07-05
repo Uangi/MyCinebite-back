@@ -23,9 +23,6 @@ public class UserRating {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long ratingId;
 
-    // @ManyToOne
-    // private MovieDetailEntity movieDetailEntity;
-
     @NotNull
     @Column(name = "movie_id")
     private int movieId;
@@ -45,13 +42,17 @@ public class UserRating {
     @Column(name = "deleted_Date")
     private LocalDateTime deletedDate;    // 평가 삭제 시점
     
+    @Column(name = "check_Deleted")
+    private boolean checkDeleted; // 삭제 유무 판단
+    
     @Builder
     public UserRating(int movieId, String userId,
-             String rating, int tomato, LocalDateTime deletedDate) {
+             String rating, int tomato, LocalDateTime deletedDate, boolean checkDeleted) {
         this.movieId = movieId;
         this.userId = userId;
         this.rating = rating;
         this.tomato = tomato;
         this.deletedDate = deletedDate;
+        this.checkDeleted = checkDeleted;
     }
 }

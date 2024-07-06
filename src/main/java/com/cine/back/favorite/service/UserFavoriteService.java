@@ -70,13 +70,13 @@ public class UserFavoriteService {
     private Optional<FavoriteResponseDto> addFavoriteIfNotExists(FavoriteRequestDto favoriteDto) throws IOException {
         MovieDetailEntity movieDetail = fetchMovieDetails(favoriteDto.movieId());
         FavoriteAndMovie favoriteAndMovie = new FavoriteAndMovie(favoriteDto,
-                new MovieInfoRequest(movieDetail.getMovieId(), movieDetail.getPosterPath(), movieDetail.getTitle()));
-    
+                new MovieInfoRequest(movieDetail.getMovieId(), movieDetail.getPosterPath(), movieDetail.getTitle(), movieDetail.getTomatoScore()));
+        log.info("찜 정보 ~~~ 영화 정보 첫번째 {}", favoriteAndMovie);
         try {
-            // UserFavorite userFavorite = userFavoriteMapper.toUserFavorite(favoriteAndMovie);
-            // UserFavorite savedFavorite = userFavoriteRepository.save(userFavorite);
+            log.info("토마토점수@@@ : {}", movieDetail.getTomatoScore());
             UserFavorite savedFavorite = userFavoriteRepository.save(userFavoriteMapper.toUserFavorite(favoriteAndMovie));
             FavoriteResponseDto responseDto = userFavoriteMapper.toResponseDto(savedFavorite);
+            // log.info("토마토점수@222@@ : {}", tomatoScore());
             log.info("찜 추가: 유저 {}, 영화번호 {}", favoriteDto.userId(), favoriteDto.movieId());
             log.info("찜된 영화 정보 : {}", responseDto);
     

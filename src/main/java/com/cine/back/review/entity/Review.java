@@ -1,95 +1,62 @@
-// package com.cine.back.review.entity;
+package com.cine.back.review.entity;
 
-// import jakarta.persistence.Entity;
-// import jakarta.persistence.GeneratedValue;
-// import jakarta.persistence.GenerationType;
-// import jakarta.persistence.Id;
-// import jakarta.persistence.Column;
-// import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
 
-// @Entity
-// public class Review {
-//     @Id
-//     @GeneratedValue(strategy = GenerationType.IDENTITY)
-//     private Long id;
+import java.time.LocalDateTime;
 
-//     @ManyToOne
-//     private User user;
+import com.cine.back.movieList.entity.MovieDetailEntity;
+import com.cine.back.user.entity.UserEntity;
 
-//     @ManyToOne
-//     private Movie movie;
+import jakarta.persistence.Column;
+import jakarta.persistence.ManyToOne;
+import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import lombok.Data;
 
-//     @Column(length = 500)
-//     private String content;
+@Data
+@Entity
+@Table(name = "Review_Info")
+public class Review {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "review")
+    private Long reviewNo;
 
-//     private int rating;
-//     private int likes;
-//     private int dislikes;
-//     private boolean reported;
+    // 제목, 내용
+    @NotNull
+    @Column(name = "review_title", length = 500)
+    private String reviewTitle;
 
-//     // Getters and setters
+    @NotNull
+    @Column(name = "review_content", length = 3000)
+    private String reviewContent;
 
-//     public Long getId() {
-//         return id;
-//     }
+    // 작성자
+    @NotNull
+    @Column(name = "user_id", length = 100)
+    private String userId;
 
-//     public void setId(Long id) {
-//         this.id = id;
-//     }
+    // 영화번호
+    @Column
+    private int movieId;
 
-//     public User getUser() {
-//         return user;
-//     }
+    // 작성일, 수정일
+    @Column(name = "created_date")
+    private LocalDateTime createdDate;
 
-//     public void setUser(User user) {
-//         this.user = user;
-//     }
+    @Column(name = "update_date")
+    private LocalDateTime updateDate;
 
-//     public Movie getMovie() {
-//         return movie;
-//     }
 
-//     public void setMovie(Movie movie) {
-//         this.movie = movie;
-//     }
+    // private int rating;
+    // private int likes;
+    // private int dislikes;
+    // private boolean reported;
 
-//     public String getContent() {
-//         return content;
-//     }
+    // Getters and setters
 
-//     public void setContent(String content) {
-//         this.content = content;
-//     }
-
-//     public int getRating() {
-//         return rating;
-//     }
-
-//     public void setRating(int rating) {
-//         this.rating = rating;
-//     }
-
-//     public int getLikes() {
-//         return likes;
-//     }
-
-//     public void setLikes(int likes) {
-//         this.likes = likes;
-//     }
-
-//     public int getDislikes() {
-//         return dislikes;
-//     }
-
-//     public void setDislikes(int dislikes) {
-//         this.dislikes = dislikes;
-//     }
-
-//     public boolean isReported() {
-//         return reported;
-//     }
-
-//     public void setReported(boolean reported) {
-//         this.reported = reported;
-//     }
-// }
+}

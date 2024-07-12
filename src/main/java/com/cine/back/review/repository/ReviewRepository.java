@@ -1,11 +1,13 @@
-// package com.cine.back.review.repository;
+package com.cine.back.review.repository;
 
-// import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.JpaRepository;
 
-// import java.util.List;
+import com.cine.back.review.entity.Review;
 
-// public interface ReviewRepository extends JpaRepository<Review, Long> {
-//     List<Review> findByMovieId(Long movieId);
+import java.util.List;
 
-//     List<Review> findByUserId(Long userId);
-// }
+public interface ReviewRepository extends JpaRepository<Review, Long> {
+    List<Review> findByMovieId(int movieId);
+
+    List<Review> findByUserId(String userId);
+}

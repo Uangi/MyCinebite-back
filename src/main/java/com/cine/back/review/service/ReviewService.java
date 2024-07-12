@@ -1,32 +1,31 @@
-// package com.cine.back.review.service;
+package com.cine.back.review.service;
 
-// import org.springframework.stereotype.Service;
+import org.springframework.stereotype.Service;
 
-// import java.util.List;
+import com.cine.back.movieList.repository.MovieDetailRepository;
+import com.cine.back.review.entity.Review;
+import com.cine.back.review.repository.ReviewRepository;
+import com.cine.back.user.repository.UserRepository;
 
-// @Service
-// public class ReviewService {
+import lombok.RequiredArgsConstructor;
 
-//     private final ReviewRepository reviewRepository;
-//     private final MovieRepository movieRepository;
-//     private final UserRepository userRepository;
+import java.util.List;
 
-//     public ReviewService(ReviewRepository reviewRepository, MovieRepository movieRepository,
-//             UserRepository userRepository) {
-//         this.reviewRepository = reviewRepository;
-//         this.movieRepository = movieRepository;
-//         this.userRepository = userRepository;
-//     }
+@RequiredArgsConstructor
+@Service
+public class ReviewService {
 
-//     public void addReview(Review review) {
-//         reviewRepository.save(review);
-//     }
+    private final ReviewRepository reviewRepository;
 
-//     public List<Review> getReviewsByMovie(Long movieId) {
-//         return reviewRepository.findByMovieId(movieId);
-//     }
+    public void addReview(Review review) {
+        reviewRepository.save(review);
+    }
 
-//     public List<Review> getReviewsByUser(Long userId) {
-//         return reviewRepository.findByUserId(userId);
-//     }
-// }
+    public List<Review> getReviewsByMovie(int movieId) {
+        return reviewRepository.findByMovieId(movieId);
+    }
+
+    public List<Review> getReviewsByUser(String userId) {
+        return reviewRepository.findByUserId(userId);
+    }
+}

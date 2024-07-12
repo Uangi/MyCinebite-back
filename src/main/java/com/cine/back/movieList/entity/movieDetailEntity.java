@@ -80,4 +80,5 @@ public class MovieDetailEntity {
     @NotNull
     @Column(nullable = false, name = "tomato_score")
     private double tomatoScore; // 평가 퍼센티지
+
 }

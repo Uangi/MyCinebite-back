@@ -89,4 +89,9 @@ public class MovieDetailService {
             log.error("에러 - 저장 실패", movieDetail.getMovieId(), e);
         }
     }
+
+    public boolean existsById(Object userId) {
+        // TODO Auto-generated method stub
+        throw new UnsupportedOperationException("Unimplemented method 'existsById'");
+    }
 }

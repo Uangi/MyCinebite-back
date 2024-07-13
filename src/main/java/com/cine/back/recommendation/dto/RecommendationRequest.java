@@ -1,19 +1,10 @@
 package com.cine.back.recommendation.dto;
 
-import lombok.Data;
+import jakarta.validation.constraints.NotBlank;
 
-@Data
-public class RecommendationRequest {
-    private int movieId;
-    private String title;
-    private String posterPath;
-    private double tomatoScore;
-
-    public RecommendationRequest(int movieId, String title, String posterPath, double tomatoScore) {
-        this.movieId = movieId;
-        this.title = title;
-        this.posterPath = posterPath;
-        this.tomatoScore = tomatoScore;
-    }
-}
+public record RecommendationRequest(
+    @NotBlank(message = "[NotBlank] 추천 영화 번호 ") int movieId,
+    @NotBlank(message = "[NotBlank] 추천 영화 제목 ") String title,
+    @NotBlank(message = "[NotBlank] 추천 영화 포스터 ") String posterPath,
+    @NotBlank(message = "[NotBlank] 추천 토마토 지수 ") double tomatoScore) { }
 
